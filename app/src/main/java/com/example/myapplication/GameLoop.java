@@ -19,6 +19,7 @@ public class GameLoop implements Runnable{
         long lastDelta = System.nanoTime();
         long nanoSec = 1_000_000_000;
 
+
         while (true){
 
             long nowDelta = System.nanoTime();
@@ -30,13 +31,13 @@ public class GameLoop implements Runnable{
             gamePanel.render();
 
             fps++;
-            long now = System.currentTimeMillis();
-            if (now - lastFPScheck >= 1000){
-                System.out.println("FPS " + fps + " " + System.currentTimeMillis());
-                fps = 0;
-                lastFPScheck += 1000;
-
-            }
+//            long now = System.currentTimeMillis();
+//            if (now - lastFPScheck >= 1000){
+//                System.out.println("FPS " + fps + " " + System.currentTimeMillis());
+//                fps = 0;
+//                lastFPScheck += 1000;
+//
+//            }
         }
     }
     public void startGameLoop(){
