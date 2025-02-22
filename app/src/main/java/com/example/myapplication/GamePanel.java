@@ -74,10 +74,6 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
         };
         testMap = new GameMap(spriteIds);
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 68fc797 (Initial commit: Upload Android Studio project to GitHub)
     }
 
     public void render() {
