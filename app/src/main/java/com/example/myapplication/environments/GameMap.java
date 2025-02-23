@@ -12,15 +12,15 @@ public class GameMap {
         this.spriteIds = spriteIds;
 
     }
-    public void draw(Canvas c){
-        for(int j = 0; j < spriteIds.length; j++){
-            for(int i = 0; i < spriteIds[j].length; i++){
-                c.drawBitmap(Floor.OUTSIDE.getSprite(spriteIds[j][i]),
-                        i * GameConstants.Sprite.SIZE,
-                        j * GameConstants.Sprite.SIZE,
-                        null);
-            }
-        }
+    public int getSpriteId(int xIndex, int yIndex){
+        return spriteIds[yIndex][xIndex];
+
+    }
+    public int getArrayWidth(){
+        return spriteIds[0].length;
+    }
+    public int getArrayHeight(){
+        return spriteIds.length;
     }
 }
 

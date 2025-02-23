@@ -23,6 +23,7 @@ public enum Floor implements BitmapMethods {
                         GameConstants.Sprite.DEFAULT_SIZE*j,
                         GameConstants.Sprite.DEFAULT_SIZE,
                         GameConstants.Sprite.DEFAULT_SIZE));
+
             }
         }
      }
