@@ -21,12 +21,12 @@ public class TouchEvents {
         circlePaint = new Paint();
         circlePaint.setStyle(Paint.Style.STROKE);
         circlePaint.setStrokeWidth(5);
-        circlePaint.setColor(Color.RED);
+        circlePaint.setColor(Color.GRAY);
 
         yellowPaint = new Paint();
         yellowPaint.setStyle(Paint.Style.STROKE);
         yellowPaint.setStrokeWidth(5);
-        yellowPaint.setColor(Color.YELLOW);
+        yellowPaint.setColor(Color.WHITE);
     }
 
     public void draw(Canvas c) {

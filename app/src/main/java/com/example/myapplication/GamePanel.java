@@ -158,6 +158,7 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
 
         float deltaX = xSpeed * baseSpeed * -1;
         float deltaY =  ySpeed * baseSpeed * -1;
+
         if (mapManager.canMoveHere(playerX + cameraX * -1 + deltaX * -1 + pWidth, playerY + cameraY * -1 + deltaY * -1 + pHeight)){
             cameraX += deltaX;
             cameraY += deltaY;
