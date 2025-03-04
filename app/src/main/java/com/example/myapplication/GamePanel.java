@@ -1,8 +1,5 @@
 package com.example.myapplication;
 
-import static com.example.myapplication.MainActivity.GAME_HEIGHT;
-import static com.example.myapplication.MainActivity.GAME_WIDTH;
-
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -14,36 +11,31 @@ import android.view.SurfaceView;
 
 import androidx.annotation.NonNull;
 
-import com.example.myapplication.entities.GameCharacters;
-import com.example.myapplication.environments.GameMap;
+
+import com.example.myapplication.entities.Character;
+import com.example.myapplication.entities.Player;
+import com.example.myapplication.entities.enemies.Skeleton;
 import com.example.myapplication.environments.MapManager;
 import com.example.myapplication.helpers.GameConstants;
 import com.example.myapplication.inputs.TouchEvents;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Random;
+
 
 public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
+
     private Paint redPaint = new Paint();
     private SurfaceHolder holder;
-    private float playerX = GAME_WIDTH / 2, playerY = GAME_HEIGHT / 2;
+
     private float cameraX, cameraY;
     private boolean movePlayer;
     private PointF lastTouchDiff;
-    private Random rand = new Random();
-    private ArrayList<PointF> lions = new ArrayList<>();
-    private int playerAniIndexY, palyerFaceDir = GameConstants.Face_Dir.RIGHT;
-    private int aniTick;
-    private int aniSpeed = 10;
-    private PointF lionPos;
-    private Random random = new Random();
     private GameLoop gameLoop;
-    private int lionDirection = GameConstants.Face_Dir.DOWN;
-    private long lastDirChange = System.currentTimeMillis();
     private TouchEvents touchEvents;
-
     private MapManager mapManager;
+    private Player player;
+//    private Skeleton skeleton;
+    private ArrayList<Skeleton> skeletons;
 
     public GamePanel(Context context) {
         super(context);
@@ -52,63 +44,54 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
         redPaint.setColor(Color.RED);
         touchEvents = new TouchEvents(this);
         gameLoop = new GameLoop(this);
-        lionPos = new PointF(rand.nextInt(GAME_WIDTH), rand.nextInt(GAME_HEIGHT));
-        mapManager = new MapManager();
 
-        int[][] testArrayWithIds = new int[10][10];
+        mapManager = new MapManager();
+        player = new Player();
+        skeletons = new ArrayList<>();
+        for (int i = 0; i < 50; i++){
+            skeletons.add( new Skeleton(new PointF(100,100)));
+        }
 
 
     }
 
     public void render() {
-
         Canvas c = holder.lockCanvas();
-        if (c != null) {
+
             c.drawColor(Color.BLACK);
             mapManager.draw(c);
             touchEvents.draw(c);
-            c.drawBitmap(GameCharacters.PLAYER.getSprite(playerAniIndexY, palyerFaceDir), playerX, playerY, null);
-            c.drawBitmap(GameCharacters.LION.getSprite(playerAniIndexY, lionDirection), lionPos.x + cameraX, lionPos.y + cameraY, null);
+
+            drawPlayer(c);
+            for (Skeleton skeleton : skeletons)
+                drawCharacter(c, skeleton);
             holder.unlockCanvasAndPost(c);
 
 
-        }
     }
 
+    private void drawPlayer(Canvas c) {
+        c.drawBitmap(player.getGameCharType().getSprite(
+                player.getAniIndex(),
+                player.getFaceDir()
+        ), player.getHitbox().left, player.getHitbox().top, null);
+    }
+
+
+
+    public void drawCharacter(Canvas canvas, Character character){
+        canvas.drawBitmap(character.getGameCharType().getSprite(character.getAniIndex(),character.getFaceDir()),
+                character.getHitbox().left + cameraX,
+                character.getHitbox().top + cameraY, null);
+    }
     public void update(double delta){
 
         updatePlayerMove(delta);
+        player.update(delta, movePlayer);
+        for (Skeleton skeleton : skeletons)
+            skeleton.update(delta);
         mapManager.setCameraValues(cameraX, cameraY);
-        if(System.currentTimeMillis() - lastDirChange >= 3000){
-            lionDirection = rand.nextInt(4);
-            lastDirChange = System.currentTimeMillis();
-        }
-        switch (lionDirection){
-            case GameConstants.Face_Dir.DOWN:
-                lionPos.y += delta * 300;
-                if (lionPos.y >= GAME_HEIGHT)
-                    lionDirection = GameConstants.Face_Dir.UP;
-                break;
-            case GameConstants.Face_Dir.UP:
-                lionPos.y -= delta * 300;
-                if (lionPos.y <= 0)
-                    lionDirection = GameConstants.Face_Dir.DOWN;
-                break;
-            case GameConstants.Face_Dir.RIGHT:
-                lionPos.x += delta * 300;
-                if (lionPos.x >= GAME_WIDTH)
-                    lionDirection = GameConstants.Face_Dir.LEFT;
-                break;
-            case GameConstants.Face_Dir.LEFT:
-                lionPos.x -= delta * 300;
-                if (lionPos.x <= 0)
-                    lionDirection = GameConstants.Face_Dir.RIGHT;
-                break;
 
-        }
-
-        
-        updateAnimation();
     }
 
     private void updatePlayerMove(double delta) {
@@ -121,21 +104,19 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
 
         float xSpeed = (float) Math.cos(angle);
         float ySpeed = (float)Math.sin(angle);
-//        System.out.println("Angle" + Math.toDegrees(angle));
-//        System.out.println("xSpeed" + xSpeed + " " + "ySpeed" + ySpeed);
 
         if (xSpeed > ySpeed){
             if (lastTouchDiff.x > 0){
-                palyerFaceDir = GameConstants.Face_Dir.RIGHT;
+                player.setFaceDir(GameConstants.Face_Dir.RIGHT);
             }else {
-                palyerFaceDir = GameConstants.Face_Dir.LEFT;
+                player.setFaceDir(GameConstants.Face_Dir.LEFT);
             }
         }else {
             if (lastTouchDiff.y > 0){
-                palyerFaceDir = GameConstants.Face_Dir.DOWN;
+                player.setFaceDir(GameConstants.Face_Dir.DOWN);
 
             }else {
-                palyerFaceDir = GameConstants.Face_Dir.UP;
+                player.setFaceDir(GameConstants.Face_Dir.UP);
             }
         }
 
@@ -159,25 +140,15 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
         float deltaX = xSpeed * baseSpeed * -1;
         float deltaY =  ySpeed * baseSpeed * -1;
 
-        if (mapManager.canMoveHere(playerX + cameraX * -1 + deltaX * -1 + pWidth, playerY + cameraY * -1 + deltaY * -1 + pHeight)){
+        if (mapManager.canMoveHere(player.getHitbox().left + cameraX * -1 + deltaX * -1 + pWidth, player.getHitbox().top + cameraY * -1 + deltaY * -1 + pHeight)){
             cameraX += deltaX;
             cameraY += deltaY;
         }
 
     }
 
-    private void updateAnimation(){
-        if (!movePlayer)
-            return;
-        aniTick++;
-        if(aniTick >= aniSpeed){
-            aniTick = 0;
-            playerAniIndexY++;
-            if(playerAniIndexY >= 4){
-                playerAniIndexY = 0;
-            }
-        }
-    }
+
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         return touchEvents.touchEvent(event);
@@ -204,12 +175,9 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
     }
     public void setPlayerMoveFalse(){
         movePlayer = false;
-        resetAnimation();
+        player.resetAnimation();
 
     }
-    public void resetAnimation(){
-        aniTick = 0;
-        playerAniIndexY = 0;
-    }
+
 
 }
